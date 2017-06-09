@@ -29,9 +29,9 @@
         this._chuncksAdded = 0;
         this._chuncksProcessed = 0;
 
-        this._startingMaterial = new THREE.PointsMaterial({ 
-            color: new THREE.Color("#222222"),
-            size: 0.1
+        this._startingMaterial = new THREE.PointsMaterial({
+            size: 0.1,
+            vertexColors: THREE.VertexColors
         });
 
         this._pointCloud = null;
@@ -209,18 +209,27 @@
         this.initializeCloud = function(size) {
             if (!that._pointCloud) {
                 var positions = new Float32Array( size * 3 ); 
+                var colors = new Float32Array( size * 3 ); 
                 
                 var geometry = new THREE.BufferGeometry();
                 geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+                geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
 
                 that._pointCloud = new THREE.Points(geometry, that._startingMaterial);
             }
         };
 
         this.addPoints = function(points) {
+            function rgbToHex(r, g, b) {
+                var rgb = b | (g << 8) | (r << 16);
+
+                return "#" + (0x1000000 | rgb).toString(16).substring(1);
+            }
+
             if (that._pointCloud) {
                 setTimeout(function() {
                     var positions = that._pointCloud.geometry.attributes.position.array;
+                    var colors = that._pointCloud.geometry.attributes.color.array;
 
                     for (var i=0; i<points.length; i++) {
                         var thisPosition = that._currentPoint;
@@ -228,8 +237,14 @@
                         that._currentPoint += 3;
 
                         positions[thisPosition] = points[i].x;
-                        positions[thisPosition+1] = points[i].y*-1;
+                        positions[thisPosition+1] = points[i].y;
                         positions[thisPosition+2] = points[i].z;
+
+                        var newColor = new THREE.Color(rgbToHex(points[i].r, points[i].g, points[i].b));
+
+                        colors[thisPosition] = newColor.r;
+                        colors[thisPosition+1] = newColor.g;
+                        colors[thisPosition+2] = newColor.b;
                     }
 
                     that._chuncksProcessed++;   
@@ -239,8 +254,11 @@
 
         this.addCloud = function() {
             var renderScene = setInterval(function() {
+            console.log(that._chuncksAdded, that._chuncksProcessed);
                 if (that._chuncksAdded == that._chuncksProcessed) {
+            console.log("here");
                     that._pointCloud.geometry.attributes.position.needsUpdate = true;
+                    that._pointCloud.geometry.attributes.color.needsUpdate = true;
 
                     that._scene.add(that._pointCloud);
 
@@ -299,10 +317,10 @@
                                                         x: parseFloat(pointData[0]),
                                                         y: parseFloat(pointData[1]),
                                                         z: parseFloat(pointData[2]),
-                                                        intensity: parseFloat(pointData[3]),
                                                         r: parseFloat(pointData[4]),
                                                         g: parseFloat(pointData[5]),
-                                                        b: parseFloat(pointData[6])
+                                                        b: parseFloat(pointData[6]),
+                                                        a: parseFloat(pointData[3])
                                                     });
                                                 }
                                             }
