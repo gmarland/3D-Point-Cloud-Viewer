@@ -12,11 +12,8 @@
 
     	this._scene = null;
 
-
 		this._raycaster = null;
 		this._mouse = null;
-
-    	this._lights = [];
 
     	this._camera = null;
         this._controls = null;
@@ -52,10 +49,6 @@
 			that._raycaster = new THREE.Raycaster();
 			that._mouse = new THREE.Vector2();
 
-           	that._lights = that.getLighting();
-
-            for (var i=0; i<that._lights.length; i++) that._scene.add(that._lights[i]);
-
             that._camera = that.getCamera(that._containerWidth, that._containerHeight);
             that._scene.add(that._camera);
 
@@ -63,8 +56,6 @@
             that._containerElement.appendChild(that._renderer.domElement);
 
             that._controls = that.getControls(that._scene, that._camera, that._renderer.domElement);
-            that._controls.setCameraPosition(0, 200, 200);
-            that._controls.rotateCamera(0, that.degToRad(-45));
 
             that.render();
 
@@ -87,44 +78,6 @@
 			return new THREE.FirstPersonControls(scene, camera, (that._basePlaneWidth*1.5), domElement);
        	};
 
-        this.getLighting = function() {               
-            var lights = [];
-
-            var directionalLightTop = new THREE.PointLight(0xffffff, .5); 
-            directionalLightTop.position.set(0, (that._basePlaneWidth/2) + (this._voxelSize*10), 0);
-
-            lights.push(directionalLightTop);
-
-            var directionalLightBottom = new THREE.PointLight(0xffffff, .5); 
-            directionalLightBottom.position.set(0, ((that._basePlaneWidth/2)*-1) - (this._voxelSize*10), 0);
-
-            lights.push(directionalLightBottom);
-
-            var directionalLightFront = new THREE.PointLight(0xffffff, .25); 
-            directionalLightFront.position.set(0, 0, (that._basePlaneWidth/2) + (this._voxelSize*10));
-
-            lights.push(directionalLightFront);
-
-            var directionalLightRight = new THREE.PointLight(0xffffff, .25); 
-            directionalLightRight.position.set(((that._basePlaneWidth/2) + (this._voxelSize*10)), 0, 0);
-
-            lights.push(directionalLightRight);
-
-            var directionalLightBack = new THREE.PointLight(0xffffff, .25); 
-            directionalLightBack.position.set(0, 0, (((that._basePlaneWidth/2) + (this._voxelSize*10))*-1));
-
-            lights.push(directionalLightBack);
-
-            var directionalLightLeft = new THREE.PointLight(0xffffff, .25); 
-            directionalLightLeft.position.set((((that._basePlaneWidth/2) + (this._voxelSize*10))*-1), 0, 0);
-
-            lights.push(directionalLightLeft);
-
-            lights.push(new THREE.AmbientLight(0x666666));    
-
-            return lights;
-        };
-
         // ----- Rendering functions
 
         this.getRenderer = function(containerWidth, containerHeight, skyboxColor, skyboxOpacity) {
@@ -136,24 +89,17 @@
         };
 
         this.render = function() {
-            var previousTime = that._clock.getElapsedTime();
+            function renderScene() {
+                setTimeout( function() {
+                    requestAnimationFrame( renderScene );
+                    
+                }, 1000 / 30 );
 
-            function updateScene() {
-               if (that._controls) {
+                if (that._controls.renderScene()) {
                     that._controls.update(that._clock.getDelta());
 
-                    if ((that._clock.getElapsedTime()-previousTime) >= 0.1) {
-                        previousTime = that._clock.getElapsedTime();
-                    }
+                    that._renderer.render(that._scene, that._camera);
                 }
-            };
-
-            function renderScene() {
-                requestAnimationFrame( renderScene );
-
-                updateScene();
-
-                that._renderer.render(that._scene, that._camera);
             };
 
             renderScene();
@@ -177,31 +123,6 @@
 			that._containerElement.addEventListener('mouseup', that.mouseUp, false);
         };
 
-		this.mouseDown = function(event) {
-            if (that._controls.enabled) {
-                event.preventDefault();
-
-                if (that._controls.getIsLeftMouseButton(event)) {
-                }
-                else if (that._controls.getIsRightMouseButton(event)) {
-                }
-
-                return false;
-            }
-		};
-
-		this.mouseUp = function(event) {
-            if (that._controls.enabled) {
-                event.preventDefault();
-
-                if (that._controls.getIsLeftMouseButton(event)) {
-                }
-                else if (that._controls.getIsRightMouseButton(event)) that._isErasing = false;
-
-                return false;
-            }
-		};
-
         this.degToRad = function(degrees) {
           return degrees * Math.PI / 180;
         };
@@ -216,6 +137,8 @@
                 geometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
 
                 that._pointCloud = new THREE.Points(geometry, that._startingMaterial);
+
+                if (that._controls) that._controls.setSceneNeedsRendering();
             }
         };
 
@@ -253,14 +176,33 @@
         }
 
         this.addCloud = function() {
+            function toRadians(degrees) {
+                return degrees * Math.PI / 180;
+            }
+
             var renderScene = setInterval(function() {
-            console.log(that._chuncksAdded, that._chuncksProcessed);
                 if (that._chuncksAdded == that._chuncksProcessed) {
-            console.log("here");
                     that._pointCloud.geometry.attributes.position.needsUpdate = true;
                     that._pointCloud.geometry.attributes.color.needsUpdate = true;
 
+                    that._pointCloud.rotation.x = that.degToRad(90);
+                    that._pointCloud.rotation.y = that.degToRad(180);
+
+                    that._pointCloud.geometry.computeBoundingSphere();
+
+                    var cloudCenter = that._pointCloud.geometry.center();
+                    var cloudRadius = that._pointCloud.geometry.boundingSphere.radius;
+
+                    that._pointCloud.position.x = (cloudCenter.x*-1);
+                    that._pointCloud.position.y = (cloudCenter.y*-1);
+                    that._pointCloud.position.z = (cloudCenter.z*-1);
+
+                    that._controls.setCameraPosition(cloudRadius, cloudRadius, cloudRadius);
+                    that._controls.setCameraLookAt(0,0,0);
+
                     that._scene.add(that._pointCloud);
+
+                    console.log("loaded");
 
                     clearInterval(renderScene);   
                 }
