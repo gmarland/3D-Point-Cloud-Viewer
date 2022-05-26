@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=50.0" />
+    <title>Point Cloud</title>
+
+    <script type="module" src="/build/point-cloud-viewer.esm.js"></script>
+    <script nomodule src="/build/point-cloud-viewer.js"></script>
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        padding: 0px;
+        margin: 0px;
+      }
+
+      cloud-scene {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <cloud-scene></cloud-scene>
+  </body>
+  <script>
+    function randomIntFromInterval(min, max) { // min and max included 
+      return Math.floor(Math.random() * (max - min + 1) + min)
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const cloudScene = document.querySelector("cloud-scene");
+
+      var pointCloud = [];
+      
+      for (let x=-50; x<50; x++) {
+        for (let y=-50; y<50; y++) {
+          for (let z=-50; z<50; z++) {
+            pointCloud.push({
+              x: x,
+              y: y,
+              z: z
+            });
+          } 
+        }
+      }
+
+      cloudScene.updateCloud(pointCloud);
+
+      setInterval(function () {
+        pointCloud.forEach(p => {
+          p.x = p.x + randomIntFromInterval(-1,0);
+          p.y = p.y + randomIntFromInterval(-1,0);
+          p.z = p.z + randomIntFromInterval(-1,0);
+        });
+
+        cloudScene.updateCloud(pointCloud);
+      }, 1000);
+    });
+  </script>
+</html>
