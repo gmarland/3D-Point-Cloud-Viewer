@@ -1,6 +1,7 @@
 import { WebGLRenderer, Color } from 'three';
 import { PointScene } from './PointScene';
 import { PointCamera } from './PointCamera';
+import { Logging } from './Logging';
 
 class PointRenderer {
     private _scene: PointScene;
@@ -58,14 +59,14 @@ class PointRenderer {
 
         this._scene.Update();
 
-        console.log("Time to update: " + (Date.now() - updateTime));
+        Logging.Log("Time to update: " + (Date.now() - updateTime));
 
         if (this._scene.IsDirty) {
             let startTime = Date.now();
 
             this._renderer.render(this._scene.GetScene(), this._camera.GetCamera());
 
-            console.log("Time to render: " + (Date.now() - startTime));
+            Logging.Log("Time to render: " + (Date.now() - startTime));
 
             this._scene.IsDirty = false;
         }

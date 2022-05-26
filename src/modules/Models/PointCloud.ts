@@ -1,3 +1,4 @@
+import { Logging } from "../Logging";
 import CloudPoint from "./CloudPoint";
 
 class PointCloud {
@@ -18,7 +19,7 @@ class PointCloud {
         this._targetYSize = sceneHeight;
         this._targetZSize = sceneDepth;
 
-        console.log(sceneWidth)
+        Logging.Log(sceneWidth);
     }
 
     public get IsDirty() {
@@ -65,7 +66,7 @@ class PointCloud {
                 this._cloud.push(cloudPoint);
             });
 
-            console.log("Time to build: " + (Date.now() - startTime));
+            Logging.Log("Time to build: " + (Date.now() - startTime));
 
             this._isDirty = true;
             
@@ -103,7 +104,7 @@ class PointCloud {
             vertices[i+2] = vertices[i+2];
         }
 
-        console.log("Time to vertex: " + (Date.now() - startLooping));
+        Logging.Log("Time to vertex: " + (Date.now() - startLooping));
 
 
         return new Float32Array(vertices);
