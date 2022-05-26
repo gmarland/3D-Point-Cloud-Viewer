@@ -56,7 +56,10 @@ class PointRenderer {
     private Render(): void {
         this._scene.Update();
 
-        this._renderer.render(this._scene.GetScene(), this._camera.GetCamera());
+        if (this._scene.IsDirty) {
+            this._renderer.render(this._scene.GetScene(), this._camera.GetCamera());
+            this._scene.IsDirty = false;
+        }
 
 		requestAnimationFrame(() => 
         {

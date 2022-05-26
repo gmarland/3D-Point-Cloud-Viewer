@@ -16,7 +16,7 @@ class PointCloud {
     public LoadCloud(cloudPoints: Array<CloudPoint>): void {
         var mappedCloudPoints = cloudPoints.reduce((map, obj) => (map[obj.key] = obj, map), new Map<string, CloudPoint>());
 
-        for (let [key, value] of this._cloud) {
+        for (let [key] of this._cloud) {
             if (!mappedCloudPoints.has(key)) {
                 this._cloud.delete(key);
                 this._isDirty = true;
@@ -37,7 +37,7 @@ class PointCloud {
 
         let i = 0;
 
-        this._cloud.forEach((value: CloudPoint, key: string) => {
+        this._cloud.forEach((value: CloudPoint) => {
             vertices.push(value.x);
             vertices.push(value.y);
             vertices.push(value.z);

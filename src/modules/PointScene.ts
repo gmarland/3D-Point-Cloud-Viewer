@@ -9,8 +9,18 @@ class PointScene {
     private _pointsMaterial: THREE.PointsMaterial  = new THREE.PointsMaterial({ color:0xff0000, size: 0.1 });
     private _points?: THREE.Points = null;
     
+    private _isDirty: boolean = false;
+
     constructor() {
         this._scene = new THREE.Scene();
+    }
+
+    public get IsDirty() {
+        return this._isDirty;
+    }
+
+    public set IsDirty(dirty: boolean) {
+        this._isDirty = dirty;
     }
 
     public GetScene(): THREE.Scene {
@@ -36,6 +46,8 @@ class PointScene {
             }
 
             this._pointCloud.IsDirty = false;
+
+            this.IsDirty = true;
         }
     }
 }
