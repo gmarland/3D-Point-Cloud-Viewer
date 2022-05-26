@@ -3,8 +3,6 @@ class CloudPoint {
     private _y: number;
     private _z: number;
 
-    private _i?: number;
-
     constructor(x: number, y: number, z: number) {
         this._x = x;
         this._y = y;
@@ -12,23 +10,27 @@ class CloudPoint {
     }
 
     public get x() {
-        return  this._x;
+        return this._x;
+    }
+
+    public set x(newX: number) {
+        this._x = newX;
     }
 
     public get y() {
-        return  this._y;
+        return this._y;
+    }
+
+    public set y(newY: number) {
+        this._y = newY;
     }
 
     public get z() {
-        return  this._z;
+        return this._z;
     }
 
-    public get i() {
-        return this._i;
-    }
-
-    public set i(index: number) {
-        this._i = index;
+    public set z(newZ: number) {
+        this._z = newZ;
     }
 
     public get key() {

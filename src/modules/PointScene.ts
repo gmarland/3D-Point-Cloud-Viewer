@@ -6,7 +6,7 @@ class PointScene {
     private _scene: THREE.Scene = new THREE.Scene();
     
     private _pointCloud: PointCloud = new PointCloud();
-    private _pointsMaterial: THREE.PointsMaterial  = new THREE.PointsMaterial({ color:0xff0000, size: 0.1 });
+    private _pointsMaterial: THREE.PointsMaterial  = new THREE.PointsMaterial({ color:0xff0000, size: 0.01 });
     private _points?: THREE.Points = null;
     
     private _isDirty: boolean = false;
