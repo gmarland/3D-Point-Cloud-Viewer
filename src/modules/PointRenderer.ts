@@ -54,10 +54,19 @@ class PointRenderer {
     }
 
     private Render(): void {
+        let updateTime = Date.now();
+
         this._scene.Update();
 
+        console.log("Time to update: " + (Date.now() - updateTime));
+
         if (this._scene.IsDirty) {
+            let startTime = Date.now();
+
             this._renderer.render(this._scene.GetScene(), this._camera.GetCamera());
+
+            console.log("Time to render: " + (Date.now() - startTime));
+
             this._scene.IsDirty = false;
         }
 

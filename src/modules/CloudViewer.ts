@@ -5,22 +5,20 @@ import { PointRenderer } from "./PointRenderer";
 import { PointScene } from "./PointScene";
 
 class CloudViewer {
-    private _backgroundColor: string = "#484848";
-
     private _container: HTMLDivElement;
 
     private _scene: PointScene; 
     private _camera: PointCamera;
     private _renderer: PointRenderer;
 
-    constructor(container: HTMLDivElement) {
+    constructor(container: HTMLDivElement, backgroundColor: string, pointColor: string, pointSize: number, sceneWidth: number, sceneHeight: number, sceneDepth: number) {
         this._container = container;
 
-        this._scene = new PointScene();
+        this._scene = new PointScene(pointColor, pointSize, sceneWidth, sceneHeight, sceneDepth);
 
         this._camera = new PointCamera(this._container.clientWidth, this._container.clientHeight);
 
-        this._renderer = new PointRenderer(this._scene, this._camera, this._container.clientWidth, this._container.clientHeight, this._backgroundColor);
+        this._renderer = new PointRenderer(this._scene, this._camera, this._container.clientWidth, this._container.clientHeight, backgroundColor);
         
         container.appendChild(this._renderer.GetDOMElement());
 

@@ -5,13 +5,19 @@ import PointCloud from "./Models/PointCloud";
 class PointScene {
     private _scene: THREE.Scene = new THREE.Scene();
     
-    private _pointCloud: PointCloud = new PointCloud();
-    private _pointsMaterial: THREE.PointsMaterial  = new THREE.PointsMaterial({ color:0xff0000, size: 0.01 });
+    private _pointCloud: PointCloud;
+    private _pointsMaterial: THREE.PointsMaterial;;
     private _points?: THREE.Points = null;
     
     private _isDirty: boolean = false;
 
-    constructor() {
+    constructor(pointColor: string, pointSize: number, sceneWidth: number, sceneHeight: number, sceneDepth: number) {
+        this._pointsMaterial = new THREE.PointsMaterial({ 
+            color:new THREE.Color(pointColor), 
+            size: pointSize 
+        });
+        this._pointCloud = new PointCloud(sceneWidth, sceneHeight, sceneDepth);
+
         this._scene = new THREE.Scene();
     }
 
@@ -28,13 +34,13 @@ class PointScene {
     }
 
     public UpdateCloud(cloudPoints: Array<CloudPoint>): void {
-        this._pointCloud.LoadCloud(cloudPoints);
+        this._pointCloud.LoadCloud(cloudPoints, false);
     }
 
     public Update(): void {
         if (this._pointCloud.IsDirty) {
             const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute( 'position', new THREE.BufferAttribute( this._pointCloud.GetPointsVerticies(), 3 ) );
+            geometry.setAttribute('position', new THREE.BufferAttribute( this._pointCloud.GetPointsVerticies(), 3 ) );
 
             if (this._points) {
                 this._points.geometry.dispose();

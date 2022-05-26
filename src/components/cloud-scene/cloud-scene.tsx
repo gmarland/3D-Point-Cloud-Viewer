@@ -1,4 +1,4 @@
-import { Component, Host, h, Method } from '@stencil/core';
+import { Component, Host, h, Method, Prop } from '@stencil/core';
 import { CloudViewer } from '../../modules/CloudViewer';
 import CloudPoint from '../../modules/Models/CloudPoint';
 
@@ -10,6 +10,14 @@ import CloudPoint from '../../modules/Models/CloudPoint';
 export class CloudScene {
   _canvas: HTMLDivElement;
   _cloudViewer: CloudViewer;
+  
+  @Prop() sceneWidth: any = 3;
+  @Prop() sceneDepth: number = 3;
+  @Prop() sceneHeight: number = 3;
+
+  @Prop() backgroundColor: string = "#484848";
+  @Prop() pointColor: string = "#ffffff";
+  @Prop() pointSize: number = 0.01;
 
   @Method()
   public async resize(): Promise<boolean> {
@@ -38,7 +46,7 @@ export class CloudScene {
   }
 
   componentDidLoad() {
-    this._cloudViewer = new CloudViewer(this._canvas);
+    this._cloudViewer = new CloudViewer(this._canvas, this.backgroundColor, this.pointColor, this.pointSize, this.sceneWidth, this.sceneHeight, this.sceneDepth);
   }
 
   render() {
