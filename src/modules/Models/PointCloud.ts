@@ -58,10 +58,16 @@ class PointCloud {
             let yRatio = this._targetYSize/(maxY-minY);
             let zRatio = this._targetZSize/(maxZ-minZ);
 
+            let xOffset = (maxX+minX)/2;
+            let yOffset = (maxY+minY)/2;
+            let zOffset = (maxZ+minZ)/2;
+
+            // get the points where we want them
+
             cloudPoints.forEach((cloudPoint: CloudPoint) => {
-                cloudPoint.x = this.normailizePoint(cloudPoint.x*xRatio);
-                cloudPoint.y = this.normailizePoint(cloudPoint.y*yRatio);
-                cloudPoint.z = this.normailizePoint(cloudPoint.z*zRatio);
+                cloudPoint.x = (cloudPoint.x-xOffset)*xRatio;
+                cloudPoint.y = (cloudPoint.y-yOffset)*yRatio;
+                cloudPoint.z = (cloudPoint.z-zOffset)*zRatio;
 
                 this._cloud.push(cloudPoint);
             });
@@ -108,10 +114,6 @@ class PointCloud {
 
 
         return new Float32Array(vertices);
-    }
-
-    private normailizePoint(num: number) {
-        return Math.round(num * 100) / 100
     }
 }
 
