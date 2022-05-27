@@ -11,7 +11,10 @@ class PointCamera {
         this._sceneHeight = sceneHeight;
 
         this._camera = new PerspectiveCamera(75, this._sceneWidth / this._sceneHeight, 0.1, 1000 );
-        this._camera.position.z = 5;
+    }
+
+    public IncreaseYRotation(rotation: number): void {
+        this._camera.rotation.y += rotation;
     }
 
     public GetCamera(): PerspectiveCamera {

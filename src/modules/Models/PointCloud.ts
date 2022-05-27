@@ -19,7 +19,9 @@ class PointCloud {
         this._targetYSize = sceneHeight;
         this._targetZSize = sceneDepth;
 
-        Logging.Log(sceneWidth);
+        Logging.Log("sceneWidth:" + sceneWidth);
+        Logging.Log("sceneHeight:" + sceneHeight);
+        Logging.Log("sceneDepth:" + sceneDepth);
     }
 
     public get IsDirty() {
@@ -36,47 +38,55 @@ class PointCloud {
 
             let startTime = Date.now();
 
-            this._cloud = new Array<CloudPoint>();
+            new Promise<Array<CloudPoint>>((resolve) => {
+                let processed = new Array<CloudPoint>();
 
-            let minX = null;
-            let maxX = null;
-            let minY = null;
-            let maxY = null;
-            let minZ = null;
-            let maxZ = null;
+                let minX = null;
+                let maxX = null;
+                let minY = null;
+                let maxY = null;
+                let minZ = null;
+                let maxZ = null;
+    
+                cloudPoints.forEach((cloudPoint: CloudPoint) => {
+                    if ((minX === null) || (cloudPoint.x < minX)) minX = cloudPoint.x;
+                    if ((maxX === null) || (cloudPoint.x > maxX)) maxX = cloudPoint.x;
+                    if ((minX === null) || (cloudPoint.y < minY)) minY = cloudPoint.y;
+                    if ((maxY === null) || (cloudPoint.y > maxY)) maxY = cloudPoint.y;
+                    if ((minX === null) || (cloudPoint.z < minZ)) minZ = cloudPoint.z;
+                    if ((maxZ === null) || (cloudPoint.z > maxZ)) maxZ = cloudPoint.z;
+                });
+    
+                let xRatio = this._targetXSize/(maxX-minX);
+                let yRatio = this._targetYSize/(maxY-minY);
+                let zRatio = this._targetZSize/(maxZ-minZ);
+    
+                let xOffset = (maxX+minX)/2;
+                let yOffset = (maxY+minY)/2;
+                let zOffset = (maxZ+minZ)/2;
+    
+                // get the points where we want them
+    
+                cloudPoints.forEach((cloudPoint: CloudPoint) => {
+                    cloudPoint.x = (cloudPoint.x-xOffset)*xRatio;
+                    cloudPoint.y = (cloudPoint.y-yOffset)*yRatio;
+                    cloudPoint.z = (cloudPoint.z-zOffset)*zRatio;
+    
+                    processed.push(cloudPoint);
+                });
 
-            cloudPoints.forEach((cloudPoint: CloudPoint) => {
-                if ((minX === null) || (cloudPoint.x < minX)) minX = cloudPoint.x;
-                if ((maxX === null) || (cloudPoint.x > maxX)) maxX = cloudPoint.x;
-                if ((minX === null) || (cloudPoint.y < minY)) minY = cloudPoint.y;
-                if ((maxY === null) || (cloudPoint.y > maxY)) maxY = cloudPoint.y;
-                if ((minX === null) || (cloudPoint.z < minZ)) minZ = cloudPoint.z;
-                if ((maxZ === null) || (cloudPoint.z > maxZ)) maxZ = cloudPoint.z;
+                resolve(processed);
+            }).then((points: Array<CloudPoint>) => {
+                this._cloud = points;
+
+                Logging.Log("Time to build: " + (Date.now() - startTime));
+
+                    this._isDirty = true;
+
+                this._isProcessing = false;
             });
-
-            let xRatio = this._targetXSize/(maxX-minX);
-            let yRatio = this._targetYSize/(maxY-minY);
-            let zRatio = this._targetZSize/(maxZ-minZ);
-
-            let xOffset = (maxX+minX)/2;
-            let yOffset = (maxY+minY)/2;
-            let zOffset = (maxZ+minZ)/2;
-
-            // get the points where we want them
-
-            cloudPoints.forEach((cloudPoint: CloudPoint) => {
-                cloudPoint.x = (cloudPoint.x-xOffset)*xRatio;
-                cloudPoint.y = (cloudPoint.y-yOffset)*yRatio;
-                cloudPoint.z = (cloudPoint.z-zOffset)*zRatio;
-
-                this._cloud.push(cloudPoint);
-            });
-
-            Logging.Log("Time to build: " + (Date.now() - startTime));
-
-            this._isDirty = true;
             
-            if (this._awaitingProcess !== null) {
+            /*if (this._awaitingProcess !== null) {
                 const awaiting = this._awaitingProcess.slice(0, this._awaitingProcess.length);
                 this._awaitingProcess = null;
 
@@ -84,36 +94,37 @@ class PointCloud {
             }
             else {
                 this._isProcessing = false;
-            }
+            }*/
         }
         else {
             this._awaitingProcess = cloudPoints;
         }
     }
 
-    public GetPointsVerticies(): Float32Array {
-        const currentCloudArray = Array.from(this._cloud.values());
+    public GetPointsVerticies(): Promise<Float32Array> {
+        return new Promise((resolve) => {
+            const currentCloudArray = Array.from(this._cloud.values());
 
-        let startLooping = Date.now();
+            let startLooping = Date.now();
 
-        let vertices = [];
+            let vertices = [];
 
-        currentCloudArray.forEach((value: CloudPoint) => {
-            vertices.push(value.x);
-            vertices.push(value.y);
-            vertices.push(value.z);
+            currentCloudArray.forEach((value: CloudPoint) => {
+                vertices.push(value.x);
+                vertices.push(value.y);
+                vertices.push(value.z);
+            });
+
+            for (let i=0; i<vertices.length; i+=3) {
+                vertices[i] = vertices[i];
+                vertices[i+1] = vertices[i+1];
+                vertices[i+2] = vertices[i+2];
+            }
+
+            Logging.Log("Time to vertex: " + (Date.now() - startLooping));
+
+            resolve(new Float32Array(vertices));
         });
-
-        for (let i=0; i<vertices.length; i+=3) {
-            vertices[i] = vertices[i];
-            vertices[i+1] = vertices[i+1];
-            vertices[i+2] = vertices[i+2];
-        }
-
-        Logging.Log("Time to vertex: " + (Date.now() - startLooping));
-
-
-        return new Float32Array(vertices);
     }
 }
 

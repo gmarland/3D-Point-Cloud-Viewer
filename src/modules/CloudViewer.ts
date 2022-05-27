@@ -1,4 +1,5 @@
 import { Raycaster, Vector2 } from 'three';
+import { FirstPersonControls } from './FirstPersonControls';
 import CloudPoint from './Models/CloudPoint';
 import { PointCamera } from "./PointCamera";
 import { PointRenderer } from "./PointRenderer";
@@ -8,7 +9,11 @@ class CloudViewer {
     private _container: HTMLDivElement;
 
     private _scene: PointScene; 
+    
     private _camera: PointCamera;
+
+    private _controls: FirstPersonControls;
+
     private _renderer: PointRenderer;
 
     constructor(container: HTMLDivElement, backgroundColor: string, pointColor: string, pointSize: number, sceneWidth: number, sceneHeight: number, sceneDepth: number) {
@@ -18,8 +23,11 @@ class CloudViewer {
 
         this._camera = new PointCamera(this._container.clientWidth, this._container.clientHeight);
 
-        this._renderer = new PointRenderer(this._scene, this._camera, this._container.clientWidth, this._container.clientHeight, backgroundColor);
-        
+        this._controls = new FirstPersonControls(this._scene, this._camera);
+        this._controls.BindEvents(container);
+
+        this._renderer = new PointRenderer(this._scene, this._camera, this._controls, this._container.clientWidth, this._container.clientHeight, backgroundColor);
+
         container.appendChild(this._renderer.GetDOMElement());
 
         this._renderer.GetDOMElement().onclick = (ev: MouseEvent) => {
@@ -48,7 +56,7 @@ class CloudViewer {
 
     public UpdateCloud(cloudPoints: Array<CloudPoint>): void {
         if (this._scene) {
-            this._scene.UpdateCloud(cloudPoints);
+            this._scene.UpdateCloud(cloudPoints, !this._controls.UpdatePosition);
         }
     }
 }

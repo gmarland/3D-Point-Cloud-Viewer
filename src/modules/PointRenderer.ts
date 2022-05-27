@@ -2,10 +2,13 @@ import { WebGLRenderer, Color } from 'three';
 import { PointScene } from './PointScene';
 import { PointCamera } from './PointCamera';
 import { Logging } from './Logging';
+import { FirstPersonControls } from './FirstPersonControls';
 
 class PointRenderer {
     private _scene: PointScene;
     private _camera: PointCamera;
+
+    private _controls?: FirstPersonControls;
 
     private _renderer: WebGLRenderer;
 
@@ -15,9 +18,11 @@ class PointRenderer {
     private _width: number;
     private _height: number;
 
-    constructor(scene: PointScene, camera: PointCamera, width: number, height: number, backgroundColor: string) {
+    constructor(scene: PointScene, camera: PointCamera, controls: FirstPersonControls, width: number, height: number, backgroundColor: string) {
         this._scene = scene;
         this._camera = camera;
+
+        this._controls = controls;
 
         this._renderer = new WebGLRenderer();
 
@@ -57,11 +62,22 @@ class PointRenderer {
     private Render(): void {
         let updateTime = Date.now();
 
-        this._scene.Update();
+        Logging.Log("Starting render: " + new Date());
+
+        let render = false;
+
+        if ((this._controls) && (this._controls.UpdatePosition)) {
+            this._controls.Update();
+            render = true;
+        }
+        else {
+            this._scene.Update();
+            render = this._scene.IsDirty;
+        }
 
         Logging.Log("Time to update: " + (Date.now() - updateTime));
 
-        if (this._scene.IsDirty) {
+        if (render) {
             let startTime = Date.now();
 
             this._renderer.render(this._scene.GetScene(), this._camera.GetCamera());

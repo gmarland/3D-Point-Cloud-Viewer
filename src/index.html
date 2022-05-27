@@ -29,7 +29,25 @@
       return Math.floor(Math.random() * (max - min + 1) + min)
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function randomize(cloudScene, pointCloud) {
+        new Promise(async (resolve) => {
+          pointCloud.forEach(p => {
+            p.x = p.x + randomIntFromInterval(-1,0);
+            p.y = p.y + randomIntFromInterval(-1,0);
+            p.z = p.z + randomIntFromInterval(-1,0);
+          });
+
+          await cloudScene.updateCloud(pointCloud);
+
+          resolve();
+        }).then(() => {
+          setTimeout(function() {
+            randomize(cloudScene, pointCloud);
+          }, 100);
+        })
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
       const cloudScene = document.querySelector("cloud-scene");
 
       var pointCloud = [];
@@ -46,17 +64,11 @@
         }
       }
 
-      cloudScene.updateCloud(pointCloud);
+      await cloudScene.updateCloud(pointCloud);
 
-      setInterval(function () {
-        pointCloud.forEach(p => {
-          p.x = p.x + randomIntFromInterval(-1,0);
-          p.y = p.y + randomIntFromInterval(-1,0);
-          p.z = p.z + randomIntFromInterval(-1,0);
-        });
-
-        cloudScene.updateCloud(pointCloud);
-      }, 16);
+      setTimeout(function () {
+        randomize(cloudScene, pointCloud);
+      }, 100);
     });
   </script>
 </html>

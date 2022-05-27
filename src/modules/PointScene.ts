@@ -33,27 +33,34 @@ class PointScene {
         return this._scene;
     }
 
-    public UpdateCloud(cloudPoints: Array<CloudPoint>): void {
-        this._pointCloud.LoadCloud(cloudPoints, false);
+    public UpdateCloud(cloudPoints: Array<CloudPoint>, apply: boolean): void {
+        if (apply) this._pointCloud.LoadCloud(cloudPoints, false);
+        //else this._pointCloud.StoreAwaitingProcessing(cloudPoints);
+    }
+
+    public Add(element: any): void {
+        this._scene.add(element);
     }
 
     public Update(): void {
         if (this._pointCloud.IsDirty) {
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute( this._pointCloud.GetPointsVerticies(), 3 ) );
-
-            if (this._points) {
-                this._points.geometry.dispose();
-                this._points.geometry = geometry;
-            }
-            else {
-                this._points = new THREE.Points(geometry, this._pointsMaterial);
-                this._scene.add(this._points);
-            }
-
-            this._pointCloud.IsDirty = false;
-
-            this.IsDirty = true;
+            this._pointCloud.GetPointsVerticies().then((vertices) => {
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3 ) );
+    
+                if (this._points) {
+                    this._points.geometry.dispose();
+                    this._points.geometry = geometry;
+                }
+                else {
+                    this._points = new THREE.Points(geometry, this._pointsMaterial);
+                    this._scene.add(this._points);
+                }
+    
+                this._pointCloud.IsDirty = false;
+    
+                this.IsDirty = true;
+            });
         }
     }
 }

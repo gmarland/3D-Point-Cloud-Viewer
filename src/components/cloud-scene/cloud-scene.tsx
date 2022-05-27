@@ -11,6 +11,8 @@ export class CloudScene {
   _canvas: HTMLDivElement;
   _cloudViewer: CloudViewer;
   
+  _processing: boolean = false;
+
   @Prop() sceneWidth: any = 3;
   @Prop() sceneDepth: number = 3;
   @Prop() sceneHeight: number = 3;
@@ -34,9 +36,19 @@ export class CloudScene {
   @Method()
   public async updateCloud(cloudPoints: Array<any>): Promise<boolean> {
     if (this._cloudViewer) {
-      const mappedPoints = cloudPoints.map(cp => new CloudPoint(cp.x, cp.y, cp.z));
+      if (!this._processing) {
+        this._processing = true;
 
-      this._cloudViewer.UpdateCloud(mappedPoints);
+        new Promise<Array<CloudPoint>>((resolve) => {
+          let mapped: CloudPoint[] = cloudPoints;
+
+          resolve(mapped);
+        }).then((mappedPoints: Array<CloudPoint>) => {
+          this._cloudViewer.UpdateCloud(mappedPoints);
+        
+          this._processing = false;
+        });
+      }
 
       return true;
     }
