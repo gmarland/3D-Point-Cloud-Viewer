@@ -2,7 +2,7 @@
 <html dir="ltr" lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=50.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=30.0" />
     <title>Point Cloud</title>
 
     <script type="module" src="/build/point-cloud-viewer.esm.js"></script>
@@ -43,7 +43,7 @@
         }).then(() => {
           setTimeout(function() {
             randomize(cloudScene, pointCloud);
-          }, 100);
+          }, 10);
         })
     }
 
@@ -52,9 +52,9 @@
 
       var pointCloud = [];
       
-      for (let x=-50; x<50; x++) {
-        for (let y=-50; y<50; y++) {
-          for (let z=-50; z<50; z++) {
+      for (let x=-30; x<30; x++) {
+        for (let y=-30; y<30; y++) {
+          for (let z=-30; z<30; z++) {
             pointCloud.push({
               x: x,
               y: y,

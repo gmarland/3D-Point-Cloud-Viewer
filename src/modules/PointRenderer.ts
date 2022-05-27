@@ -70,9 +70,11 @@ class PointRenderer {
             this._controls.Update();
             render = true;
         }
-        else {
-            this._scene.Update();
-            render = this._scene.IsDirty;
+        
+        this._scene.Update();
+
+        if (this._scene.IsDirty) {
+            render = true;
         }
 
         Logging.Log("Time to update: " + (Date.now() - updateTime));

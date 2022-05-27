@@ -81,20 +81,18 @@ class PointCloud {
 
                 Logging.Log("Time to build: " + (Date.now() - startTime));
 
-                    this._isDirty = true;
+                this._isDirty = true;
 
-                this._isProcessing = false;
+                if (this._awaitingProcess !== null) {
+                    const awaiting = this._awaitingProcess.slice(0, this._awaitingProcess.length);
+                    this._awaitingProcess = null;
+    
+                    this.LoadCloud(awaiting, true);
+                }
+                else {
+                    this._isProcessing = false;
+                }
             });
-            
-            /*if (this._awaitingProcess !== null) {
-                const awaiting = this._awaitingProcess.slice(0, this._awaitingProcess.length);
-                this._awaitingProcess = null;
-
-                this.LoadCloud(awaiting, true);
-            }
-            else {
-                this._isProcessing = false;
-            }*/
         }
         else {
             this._awaitingProcess = cloudPoints;
