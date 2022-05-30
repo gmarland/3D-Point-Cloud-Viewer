@@ -1,22 +1,23 @@
 import * as THREE from "three";
 import CloudPoint from "./Models/CloudPoint";
 import PointCloud from "./Models/PointCloud";
+import { CloudDimensions } from "./Models/CloudDimensions";
 
 class PointScene {
     private _scene: THREE.Scene = new THREE.Scene();
     
     private _pointCloud: PointCloud;
-    private _pointsMaterial: THREE.PointsMaterial;;
+    private _pointsMaterial: THREE.PointsMaterial;
     private _points?: THREE.Points = null;
     
     private _isDirty: boolean = false;
 
-    constructor(pointColor: string, pointSize: number, sceneWidth: number, sceneHeight: number, sceneDepth: number) {
+    constructor(pointColor: string, pointSize: number) {
         this._pointsMaterial = new THREE.PointsMaterial({ 
             color:new THREE.Color(pointColor), 
             size: pointSize 
         });
-        this._pointCloud = new PointCloud(sceneWidth, sceneHeight, sceneDepth);
+        this._pointCloud = new PointCloud();
 
         this._scene = new THREE.Scene();
     }
@@ -33,8 +34,8 @@ class PointScene {
         return this._scene;
     }
 
-    public UpdateCloud(cloudPoints: Array<CloudPoint>, apply: boolean): void {
-        if (apply) this._pointCloud.LoadCloud(cloudPoints, false);
+    public UpdateCloud(cloudPoints: Array<CloudPoint>, cloudDimensions: CloudDimensions, apply: boolean): void {
+        if (apply) this._pointCloud.LoadCloud(cloudPoints, cloudDimensions, false);
         //else this._pointCloud.StoreAwaitingProcessing(cloudPoints);
     }
 

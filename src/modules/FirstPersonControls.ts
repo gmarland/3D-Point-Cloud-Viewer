@@ -5,7 +5,6 @@ import { PointScene } from './PointScene';
 class FirstPersonControls {
     private _movementSpeed: number = 0.25;
 
-    private _scene: PointScene;
     private _camera: PointCamera;
 
     private _pitchObject: Object3D;
@@ -29,8 +28,7 @@ class FirstPersonControls {
     private _updatePosition: boolean = false;
     private _keepUpdatingPosition: boolean = false;
 
-    constructor(scene: PointScene, camera: PointCamera) {
-        this._scene = scene;
+    constructor(camera: PointCamera) {
         this._camera = camera;
     
         this._camera = camera;
@@ -41,8 +39,6 @@ class FirstPersonControls {
     
         this._yawObject = new Object3D();
         this._yawObject.add(this._pitchObject);
-    
-        this._scene.Add(this._yawObject);
     }
 
     public get UpdatePosition() {
@@ -52,6 +48,10 @@ class FirstPersonControls {
     public set UpdatePosition(updatePosition: boolean) {
         this._updatePosition = updatePosition;
     }
+
+	AddToScene(scene: PointScene) {
+		scene.Add(this._yawObject);
+	}
 
 	OnMouseDown(event: MouseEvent): void {
 		if (this.GetIsLeftMouseButton(event)) this._moveCameraWithMouse = true;

@@ -1,6 +1,8 @@
 import { Component, Host, h, Method, Prop } from '@stencil/core';
 import { CloudViewer } from '../../modules/CloudViewer';
+import { CloudDimensions } from '../../modules/Models/CloudDimensions';
 import CloudPoint from '../../modules/Models/CloudPoint';
+import { GetCloudDimensions } from '../../utils/pointCloudUtils';
 
 @Component({
   tag: 'cloud-scene',
@@ -44,9 +46,11 @@ export class CloudScene {
 
           resolve(mapped);
         }).then((mappedPoints: Array<CloudPoint>) => {
-          this._cloudViewer.UpdateCloud(mappedPoints);
-        
-          this._processing = false;
+          GetCloudDimensions(this.sceneWidth, this.sceneHeight, this.sceneDepth, mappedPoints).then((cloudDimensions: CloudDimensions) => {
+            this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions);
+          
+            this._processing = false;
+          });
         });
       }
 
@@ -58,7 +62,7 @@ export class CloudScene {
   }
 
   componentDidLoad() {
-    this._cloudViewer = new CloudViewer(this._canvas, this.backgroundColor, this.pointColor, this.pointSize, this.sceneWidth, this.sceneHeight, this.sceneDepth);
+    this._cloudViewer = new CloudViewer(this._canvas, this.backgroundColor, this.pointColor, this.pointSize);
   }
 
   render() {

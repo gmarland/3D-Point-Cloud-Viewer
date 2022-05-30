@@ -5,6 +5,7 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { CloudDimensions } from "./modules/Models/CloudDimensions";
 export namespace Components {
     interface CloudScene {
         "backgroundColor": string;

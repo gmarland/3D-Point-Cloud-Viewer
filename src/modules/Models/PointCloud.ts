@@ -1,28 +1,14 @@
 import { Logging } from "../Logging";
+import { CloudDimensions } from "./CloudDimensions";
 import CloudPoint from "./CloudPoint";
 
 class PointCloud {
-    
-    private _targetXSize: number;
-    private _targetYSize: number;
-    private _targetZSize: number;
-
     private _isProcessing = false;
     private _awaitingProcess?: Array<CloudPoint> = null;
 
     private _cloud: Array<CloudPoint> = new Array<CloudPoint>();
     
     private _isDirty: boolean = false;
-
-    constructor(sceneWidth: number, sceneHeight: number, sceneDepth: number) {
-        this._targetXSize = sceneWidth;
-        this._targetYSize = sceneHeight;
-        this._targetZSize = sceneDepth;
-
-        Logging.Log("sceneWidth:" + sceneWidth);
-        Logging.Log("sceneHeight:" + sceneHeight);
-        Logging.Log("sceneDepth:" + sceneDepth);
-    }
 
     public get IsDirty() {
         return this._isDirty;
@@ -32,7 +18,7 @@ class PointCloud {
         this._isDirty = dirty;
     }
 
-    public LoadCloud(cloudPoints: Array<CloudPoint>, continuing: boolean): void {
+    public LoadCloud(cloudPoints: Array<CloudPoint>, cloudDimensions: CloudDimensions, continuing: boolean): void {
         if (!this._isProcessing || continuing) {
             this._isProcessing = true;
 
@@ -40,37 +26,13 @@ class PointCloud {
 
             new Promise<Array<CloudPoint>>((resolve) => {
                 let processed = new Array<CloudPoint>();
-
-                let minX = null;
-                let maxX = null;
-                let minY = null;
-                let maxY = null;
-                let minZ = null;
-                let maxZ = null;
-    
-                cloudPoints.forEach((cloudPoint: CloudPoint) => {
-                    if ((minX === null) || (cloudPoint.x < minX)) minX = cloudPoint.x;
-                    if ((maxX === null) || (cloudPoint.x > maxX)) maxX = cloudPoint.x;
-                    if ((minX === null) || (cloudPoint.y < minY)) minY = cloudPoint.y;
-                    if ((maxY === null) || (cloudPoint.y > maxY)) maxY = cloudPoint.y;
-                    if ((minX === null) || (cloudPoint.z < minZ)) minZ = cloudPoint.z;
-                    if ((maxZ === null) || (cloudPoint.z > maxZ)) maxZ = cloudPoint.z;
-                });
-    
-                let xRatio = this._targetXSize/(maxX-minX);
-                let yRatio = this._targetYSize/(maxY-minY);
-                let zRatio = this._targetZSize/(maxZ-minZ);
-    
-                let xOffset = (maxX+minX)/2;
-                let yOffset = (maxY+minY)/2;
-                let zOffset = (maxZ+minZ)/2;
-    
+                
                 // get the points where we want them
     
                 cloudPoints.forEach((cloudPoint: CloudPoint) => {
-                    cloudPoint.x = (cloudPoint.x-xOffset)*xRatio;
-                    cloudPoint.y = (cloudPoint.y-yOffset)*yRatio;
-                    cloudPoint.z = (cloudPoint.z-zOffset)*zRatio;
+                    cloudPoint.x = (cloudPoint.x-cloudDimensions.xOffset)*cloudDimensions.xRatio;
+                    cloudPoint.y = (cloudPoint.y-cloudDimensions.yOffset)*cloudDimensions.yRatio;
+                    cloudPoint.z = (cloudPoint.z-cloudDimensions.zOffset)*cloudDimensions.zRatio;
     
                     processed.push(cloudPoint);
                 });
@@ -87,7 +49,7 @@ class PointCloud {
                     const awaiting = this._awaitingProcess.slice(0, this._awaitingProcess.length);
                     this._awaitingProcess = null;
     
-                    this.LoadCloud(awaiting, true);
+                    this.LoadCloud(awaiting, cloudDimensions, true);
                 }
                 else {
                     this._isProcessing = false;

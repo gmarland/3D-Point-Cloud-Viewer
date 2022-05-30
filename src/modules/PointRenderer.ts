@@ -5,7 +5,6 @@ import { Logging } from './Logging';
 import { FirstPersonControls } from './FirstPersonControls';
 
 class PointRenderer {
-    private _scene: PointScene;
     private _camera: PointCamera;
 
     private _controls?: FirstPersonControls;
@@ -18,8 +17,7 @@ class PointRenderer {
     private _width: number;
     private _height: number;
 
-    constructor(scene: PointScene, camera: PointCamera, controls: FirstPersonControls, width: number, height: number, backgroundColor: string) {
-        this._scene = scene;
+    constructor(camera: PointCamera, controls: FirstPersonControls, width: number, height: number, backgroundColor: string) {
         this._camera = camera;
 
         this._controls = controls;
@@ -42,16 +40,16 @@ class PointRenderer {
     }
 
     public SetColor(color: string): void {
-        this._renderer.setClearColor(new Color(color));
+        //this._renderer.setClearColor(new Color(color));
     }
 
-    public StartRendering() {
+    public StartRendering(scenes: Array<PointScene>) {
         this._keepRendering = true;
 
         if (!this._rendering) {
             this._rendering = true;
             
-            this.Render();
+            this.Render(scenes);
         }
     }
 
@@ -59,7 +57,7 @@ class PointRenderer {
         this._keepRendering = true;
     }
 
-    private Render(): void {
+    private Render(scenes: Array<PointScene>): void {
         let updateTime = Date.now();
 
         Logging.Log("Starting render: " + new Date());
@@ -71,27 +69,36 @@ class PointRenderer {
             render = true;
         }
         
-        this._scene.Update();
+        if (scenes.length > 0) {
+            this._renderer.autoClear = true;
+            
+            for (let i=0; i<scenes.length; i++) {
+                scenes[i].Update();
 
-        if (this._scene.IsDirty) {
-            render = true;
-        }
+                if (scenes[i].IsDirty) {
+                    render = true;
+                }
 
-        Logging.Log("Time to update: " + (Date.now() - updateTime));
+                Logging.Log("Time to update: " + (Date.now() - updateTime));
 
-        if (render) {
-            let startTime = Date.now();
+                if (render) {
+                    console.log("here")
+                    let startTime = Date.now();
 
-            this._renderer.render(this._scene.GetScene(), this._camera.GetCamera());
+                    this._renderer.render(scenes[i].GetScene(), this._camera.GetCamera());
 
-            Logging.Log("Time to render: " + (Date.now() - startTime));
+                    Logging.Log("Time to render: " + (Date.now() - startTime));
 
-            this._scene.IsDirty = false;
+                    this._renderer.autoClear = false;
+
+                    scenes[i].IsDirty = false;
+                }
+            }
         }
 
 		requestAnimationFrame(() => 
         {
-            if (this._keepRendering) this.Render()
+            if (this._keepRendering) this.Render(scenes);
         });
     }
 }
