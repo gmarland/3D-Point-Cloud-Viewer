@@ -17,7 +17,10 @@ class PointScene {
             color:new THREE.Color(pointColor), 
             size: pointSize 
         });
-        this._pointCloud = new PointCloud();
+
+        this._pointCloud = new PointCloud(() => {
+            this.Update();
+        });
 
         this._scene = new THREE.Scene();
     }
@@ -35,7 +38,10 @@ class PointScene {
     }
 
     public UpdateCloud(cloudPoints: Array<CloudPoint>, cloudDimensions: CloudDimensions, apply: boolean): void {
-        if (apply) this._pointCloud.LoadCloud(cloudPoints, cloudDimensions, false);
+        if (apply) {
+            this._pointCloud.LoadCloud(cloudPoints, cloudDimensions, false);
+
+        }
         //else this._pointCloud.StoreAwaitingProcessing(cloudPoints);
     }
 
@@ -43,26 +49,22 @@ class PointScene {
         this._scene.add(element);
     }
 
-    public Update(): void {
-        if (this._pointCloud.IsDirty) {
-            this._pointCloud.GetPointsVerticies().then((vertices) => {
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3 ) );
-    
-                if (this._points) {
-                    this._points.geometry.dispose();
-                    this._points.geometry = geometry;
-                }
-                else {
-                    this._points = new THREE.Points(geometry, this._pointsMaterial);
-                    this._scene.add(this._points);
-                }
-    
-                this._pointCloud.IsDirty = false;
-    
-                this.IsDirty = true;
-            });
+    private Update(): void {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(this._pointCloud.verticies, 3 ) );
+
+        if (this._points) {
+            this._points.geometry.dispose();
+            this._points.geometry = geometry;
         }
+        else {
+            this._points = new THREE.Points(geometry, this._pointsMaterial);
+            this._scene.add(this._points);
+        }
+
+        this._pointCloud.IsDirty = false;
+
+        this.IsDirty = true;
     }
 }
 

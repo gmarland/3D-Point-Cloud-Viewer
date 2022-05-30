@@ -89,6 +89,8 @@ class CloudViewer {
         for (let i=0; i<sceneCount; i++) {
             if ((i*this._maxPointCloud) < cloudPoints.length) this._scenes[i].UpdateCloud(cloudPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud), cloudDimensions, !this._controls.UpdatePosition);
             else this._scenes[i].UpdateCloud(cloudPoints.slice(i*this._maxPointCloud, cloudPoints.length), cloudDimensions, !this._controls.UpdatePosition);
+        
+            
         }
     }
 }

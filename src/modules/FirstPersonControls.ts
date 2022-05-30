@@ -130,8 +130,6 @@ class FirstPersonControls {
 	}
 
 	OnKeyUp(event: KeyboardEvent): void {
-		let movementCancelled = false;
-
 		switch ( event.keyCode ) {
 			case 87: /*W*/ 
 				this._moveForward = false; 
