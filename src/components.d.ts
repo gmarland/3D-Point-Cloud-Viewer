@@ -8,13 +8,12 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { CloudDimensions } from "./modules/Models/CloudDimensions";
 export namespace Components {
     interface CloudScene {
-        "backgroundColor": string;
         "pointColor": string;
         "pointSize": number;
         "resize": () => Promise<boolean>;
         "sceneDepth": number;
         "sceneHeight": number;
-        "sceneWidth": any;
+        "sceneWidth": number;
         "updateCloud": (cloudPoints: Array<any>) => Promise<boolean>;
     }
 }
@@ -31,12 +30,11 @@ declare global {
 }
 declare namespace LocalJSX {
     interface CloudScene {
-        "backgroundColor"?: string;
         "pointColor"?: string;
         "pointSize"?: number;
         "sceneDepth"?: number;
         "sceneHeight"?: number;
-        "sceneWidth"?: any;
+        "sceneWidth"?: number;
     }
     interface IntrinsicElements {
         "cloud-scene": CloudScene;

@@ -15,11 +15,10 @@ export class CloudScene {
   
   _processing: boolean = false;
 
-  @Prop() sceneWidth: any = 3;
+  @Prop() sceneWidth: number = 3;
   @Prop() sceneDepth: number = 3;
   @Prop() sceneHeight: number = 3;
 
-  @Prop() backgroundColor: string = "#484848";
   @Prop() pointColor: string = "#ffffff";
   @Prop() pointSize: number = 0.01;
 
@@ -62,7 +61,7 @@ export class CloudScene {
   }
 
   componentDidLoad() {
-    this._cloudViewer = new CloudViewer(this._canvas, this.backgroundColor, this.pointColor, this.pointSize);
+    this._cloudViewer = new CloudViewer(this._canvas, this.pointColor, this.pointSize);
   }
 
   render() {

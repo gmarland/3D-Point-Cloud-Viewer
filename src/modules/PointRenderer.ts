@@ -17,7 +17,7 @@ class PointRenderer {
     private _width: number;
     private _height: number;
 
-    constructor(camera: PointCamera, controls: FirstPersonControls, width: number, height: number, backgroundColor: string) {
+    constructor(camera: PointCamera, controls: FirstPersonControls, width: number, height: number) {
         this._camera = camera;
 
         this._controls = controls;
@@ -29,7 +29,6 @@ class PointRenderer {
         this._renderer.setClearColor( 0x000000, 0 );
 
         this.SetSize(width, height);
-        //this.SetColor(backgroundColor);
     }
 
     public GetDOMElement(): HTMLCanvasElement {
@@ -41,10 +40,6 @@ class PointRenderer {
         this._height = height;
         
         this._renderer.setSize( this._width, this._height );
-    }
-
-    public SetColor(color: string): void {
-        //this._renderer.setClearColor(new Color(color));
     }
 
     public StartRendering(scenes: Array<PointScene>) {
@@ -76,35 +71,24 @@ class PointRenderer {
         if (scenes.length > 0) {
             this._renderer.autoClear = true;
 
+            this._renderer.autoClear = false;
+
             let renderPromises = [];
 
             for (let i=0; i<scenes.length; i++) {
-                if (i === 0) {
+                renderPromises.push(new Promise<void>((resolve) => {
                     this.RenderScene(render, scenes[i]);
-                }
-                else {
-                    renderPromises.push(new Promise<void>((resolve) => {
-                        this.RenderScene(render, scenes[i]);
-                        
-                        resolve();
-                    }));
-                }
+                    
+                    resolve();
+                }));
             }
 
-            if (renderPromises.length > 0) {
-                Promise.all(renderPromises).then(() => {
-                    requestAnimationFrame(() => 
-                    {
-                        if (this._keepRendering) this.Render(scenes);
-                    });
-                });
-            }
-            else {
+            Promise.all(renderPromises).then(() => {
                 requestAnimationFrame(() => 
                 {
                     if (this._keepRendering) this.Render(scenes);
                 });
-            }
+            });
         }
         else {
             requestAnimationFrame(() => 

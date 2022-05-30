@@ -22,7 +22,7 @@ class CloudViewer {
 
     private _maxPointCloud: number = 200000;
 
-    constructor(container: HTMLDivElement, backgroundColor: string, pointColor: string, pointSize: number) {
+    constructor(container: HTMLDivElement, pointColor: string, pointSize: number) {
         this._container = container;
 
         this._pointColor = pointColor;
@@ -35,7 +35,7 @@ class CloudViewer {
         this._controls = new FirstPersonControls(this._camera);
         this._controls.BindEvents(container);
 
-        this._renderer = new PointRenderer(this._camera, this._controls, this._container.clientWidth, this._container.clientHeight, backgroundColor);
+        this._renderer = new PointRenderer(this._camera, this._controls, this._container.clientWidth, this._container.clientHeight);
 
         container.appendChild(this._renderer.GetDOMElement());
 
