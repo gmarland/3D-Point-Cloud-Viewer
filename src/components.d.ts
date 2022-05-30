@@ -11,9 +11,7 @@ export namespace Components {
         "pointColor": string;
         "pointSize": number;
         "resize": () => Promise<boolean>;
-        "sceneDepth": number;
-        "sceneHeight": number;
-        "sceneWidth": number;
+        "sceneSize"?: number;
         "updateCloud": (cloudPoints: Array<any>) => Promise<boolean>;
     }
 }
@@ -32,9 +30,7 @@ declare namespace LocalJSX {
     interface CloudScene {
         "pointColor"?: string;
         "pointSize"?: number;
-        "sceneDepth"?: number;
-        "sceneHeight"?: number;
-        "sceneWidth"?: number;
+        "sceneSize"?: number;
     }
     interface IntrinsicElements {
         "cloud-scene": CloudScene;

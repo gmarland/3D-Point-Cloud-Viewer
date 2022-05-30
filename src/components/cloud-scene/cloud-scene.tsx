@@ -15,9 +15,7 @@ export class CloudScene {
   
   _processing: boolean = false;
 
-  @Prop() sceneWidth: number = 3;
-  @Prop() sceneDepth: number = 3;
-  @Prop() sceneHeight: number = 3;
+  @Prop() sceneSize?: number = null;
 
   @Prop() pointColor: string = "#ffffff";
   @Prop() pointSize: number = 0.01;
@@ -45,11 +43,18 @@ export class CloudScene {
 
           resolve(mapped);
         }).then((mappedPoints: Array<CloudPoint>) => {
-          GetCloudDimensions(this.sceneWidth, this.sceneHeight, this.sceneDepth, mappedPoints).then((cloudDimensions: CloudDimensions) => {
-            this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions);
+          if (this.sceneSize !== null) {
+            GetCloudDimensions(this.sceneSize, mappedPoints).then((cloudDimensions: CloudDimensions) => {
+              this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions);
+            
+              this._processing = false;
+            });
+          }
+          else {
+            this._cloudViewer.UpdateCloud(mappedPoints, null);
           
             this._processing = false;
-          });
+          }
         });
       }
 

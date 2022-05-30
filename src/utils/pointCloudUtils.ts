@@ -1,7 +1,7 @@
 import { CloudDimensions } from "../modules/Models/CloudDimensions";
 import CloudPoint from "../modules/Models/CloudPoint";
 
-export const GetCloudDimensions = (targetXSize: number, targetYSize: number, targetZSize: number, cloudPoints: Array<CloudPoint>): Promise<CloudDimensions> => {
+export const GetCloudDimensions = (sceneSize: number, cloudPoints: Array<CloudPoint>): Promise<CloudDimensions> => {
     return new Promise((resolve) => {
         let minX = null;
         let maxX = null;
@@ -21,9 +21,9 @@ export const GetCloudDimensions = (targetXSize: number, targetYSize: number, tar
 
         const cloudDimensions = new CloudDimensions();
 
-        cloudDimensions.xRatio = targetXSize/(maxX-minX);
-        cloudDimensions.yRatio = targetYSize/(maxY-minY);
-        cloudDimensions.zRatio = targetZSize/(maxZ-minZ);
+        cloudDimensions.xRatio = sceneSize/(maxX-minX);
+        cloudDimensions.yRatio = sceneSize/(maxY-minY);
+        cloudDimensions.zRatio = sceneSize/(maxZ-minZ);
 
         cloudDimensions.xOffset = (maxX+minX)/2;
         cloudDimensions.yOffset = (maxY+minY)/2;

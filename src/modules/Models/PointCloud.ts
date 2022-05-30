@@ -25,19 +25,24 @@ class PointCloud {
             let startTime = Date.now();
 
             new Promise<Array<CloudPoint>>((resolve) => {
-                let processed = new Array<CloudPoint>();
+                // get the points where we want them if we are normalizing them
                 
-                // get the points where we want them
-    
-                cloudPoints.forEach((cloudPoint: CloudPoint) => {
-                    cloudPoint.x = (cloudPoint.x-cloudDimensions.xOffset)*cloudDimensions.xRatio;
-                    cloudPoint.y = (cloudPoint.y-cloudDimensions.yOffset)*cloudDimensions.yRatio;
-                    cloudPoint.z = (cloudPoint.z-cloudDimensions.zOffset)*cloudDimensions.zRatio;
-    
-                    processed.push(cloudPoint);
-                });
+                if (cloudDimensions != null) {
+                    let processed = new Array<CloudPoint>();
+                    
+                    cloudPoints.forEach((cloudPoint: CloudPoint) => {
+                        cloudPoint.x = (cloudPoint.x-cloudDimensions.xOffset)*cloudDimensions.xRatio;
+                        cloudPoint.y = (cloudPoint.y-cloudDimensions.yOffset)*cloudDimensions.yRatio;
+                        cloudPoint.z = (cloudPoint.z-cloudDimensions.zOffset)*cloudDimensions.zRatio;
+        
+                        processed.push(cloudPoint);
+                    });
 
-                resolve(processed);
+                    resolve(processed);
+                }
+                else {
+                    resolve(cloudPoints);
+                }
             }).then((points: Array<CloudPoint>) => {
                 this._cloud = points;
 
