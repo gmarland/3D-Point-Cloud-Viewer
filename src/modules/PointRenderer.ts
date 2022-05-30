@@ -63,6 +63,7 @@ class PointRenderer {
 
         if ((this._controls) && (this._controls.UpdatePosition)) {
             this._controls.Update();
+            
             render = true;
         }
         

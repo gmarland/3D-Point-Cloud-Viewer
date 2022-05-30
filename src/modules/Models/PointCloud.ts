@@ -3,7 +3,7 @@ import { CloudDimensions } from "./CloudDimensions";
 import CloudPoint from "./CloudPoint";
 
 class PointCloud {
-    private _updated;
+    private _updated: Function;
 
     private _isProcessing = false;
     private _awaitingProcess?: Array<CloudPoint> = null;
@@ -12,7 +12,7 @@ class PointCloud {
 
     private _isDirty: boolean = false;
 
-    constructor(updated) {
+    constructor(updated: Function) {
         this._updated = updated;
     }
 
