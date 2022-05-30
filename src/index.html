@@ -52,9 +52,9 @@
 
       var pointCloud = [];
       
-      for (let x=-30; x<30; x++) {
-        for (let y=-30; y<30; y++) {
-          for (let z=-30; z<30; z++) {
+      for (let x=-300; x<100; x++) {
+        for (let y=-100; y<100; y++) {
+          for (let z=-100; z<100; z++) {
             pointCloud.push({
               x: x,
               y: y,
@@ -66,9 +66,9 @@
 
       await cloudScene.updateCloud(pointCloud);
 
-      setTimeout(function () {
+      /*setTimeout(function () {
         randomize(cloudScene, pointCloud);
-      }, 100);
+      }, 100);*/
     });
   </script>
 </html>
