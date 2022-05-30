@@ -22,10 +22,14 @@ class PointRenderer {
 
         this._controls = controls;
 
-        this._renderer = new WebGLRenderer();
+        this._renderer = new WebGLRenderer({
+            alpha: true
+        });
+
+        this._renderer.setClearColor( 0x000000, 0 );
 
         this.SetSize(width, height);
-        this.SetColor(backgroundColor);
+        //this.SetColor(backgroundColor);
     }
 
     public GetDOMElement(): HTMLCanvasElement {
@@ -71,35 +75,65 @@ class PointRenderer {
         
         if (scenes.length > 0) {
             this._renderer.autoClear = true;
-            
+
+            let renderPromises = [];
+
             for (let i=0; i<scenes.length; i++) {
-                scenes[i].Update();
-
-                if (scenes[i].IsDirty) {
-                    render = true;
+                if (i === 0) {
+                    this.RenderScene(render, scenes[i]);
                 }
-
-                Logging.Log("Time to update: " + (Date.now() - updateTime));
-
-                if (render) {
-                    console.log("here")
-                    let startTime = Date.now();
-
-                    this._renderer.render(scenes[i].GetScene(), this._camera.GetCamera());
-
-                    Logging.Log("Time to render: " + (Date.now() - startTime));
-
-                    this._renderer.autoClear = false;
-
-                    scenes[i].IsDirty = false;
+                else {
+                    renderPromises.push(new Promise<void>((resolve) => {
+                        this.RenderScene(render, scenes[i]);
+                        
+                        resolve();
+                    }));
                 }
             }
+
+            if (renderPromises.length > 0) {
+                Promise.all(renderPromises).then(() => {
+                    requestAnimationFrame(() => 
+                    {
+                        if (this._keepRendering) this.Render(scenes);
+                    });
+                });
+            }
+            else {
+                requestAnimationFrame(() => 
+                {
+                    if (this._keepRendering) this.Render(scenes);
+                });
+            }
+        }
+        else {
+            requestAnimationFrame(() => 
+            {
+                if (this._keepRendering) this.Render(scenes);
+            });
+        }
+    }
+
+    private RenderScene(render: boolean, scene: PointScene): void {
+        let renderScene = render;
+
+        scene.Update();
+
+        if (scene.IsDirty) {
+            renderScene = true;
         }
 
-		requestAnimationFrame(() => 
-        {
-            if (this._keepRendering) this.Render(scenes);
-        });
+        if (renderScene) {
+            let startTime = Date.now();
+
+            this._renderer.render(scene.GetScene(), this._camera.GetCamera());
+
+            Logging.Log("Time to render: " + (Date.now() - startTime));
+
+            this._renderer.autoClear = false;
+
+            scene.IsDirty = false;
+        }
     }
 }
 
