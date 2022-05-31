@@ -12,7 +12,7 @@ class CloudViewer {
     private _pointColor: string;
     private _pointSize: number;
 
-    private _scenes: Array<PointScene> = new Array<PointScene>(); 
+    private _scene: PointScene;
     
     private _camera: PointCamera;
 
@@ -27,13 +27,14 @@ class CloudViewer {
 
         this._pointColor = pointColor;
         this._pointSize = pointSize;
-
-        this._scenes = new Array<PointScene>();
-
+        
         this._camera = new PointCamera(this._container.clientWidth, this._container.clientHeight);
 
         this._controls = new FirstPersonControls(this._camera);
         this._controls.BindEvents(container);
+
+        this._scene = new PointScene(this._pointColor, this._pointSize);
+        this._controls.AddToScene(this._scene);
 
         this._renderer = new PointRenderer(this._camera, this._controls, this._container.clientWidth, this._container.clientHeight);
 
@@ -43,7 +44,7 @@ class CloudViewer {
             this.ScreenClicked(ev);
         }
 
-        this._renderer.StartRendering(this._scenes);
+        this._renderer.StartRendering(this._scene);
     }
 
     private ScreenClicked(ev: MouseEvent): void {
@@ -63,35 +64,21 @@ class CloudViewer {
         return mousePosition;
     }
 
-    public UpdateCloud(cloudPoints: Array<CloudPoint>, cloudDimensions: CloudDimensions): void {
-        const sceneCount = Math.ceil(cloudPoints.length/this._maxPointCloud);
-        
-        if (this._scenes.length !== sceneCount) {
-            if (this._scenes.length > sceneCount) {
-                const scenesToRemove = this._scenes.length-sceneCount;
-
-                for (let i=0; i<scenesToRemove; i++) {
-                    this._scenes.splice(this._scenes.length-1);
-                }
-            }
-            else {
-                const scenesToAdd = sceneCount-this._scenes.length;
-
-                for (let i=0; i<scenesToAdd; i++) {
-                    const newScene = new PointScene(this._pointColor, this._pointSize);
-
-                    this._scenes.push(newScene);
-                    this._controls.AddToScene(newScene);
-                }
-            }
-        }
-
-        for (let i=0; i<sceneCount; i++) {
-            if ((i*this._maxPointCloud) < cloudPoints.length) this._scenes[i].UpdateCloud(cloudPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud), cloudDimensions, !this._controls.UpdatePosition);
-            else this._scenes[i].UpdateCloud(cloudPoints.slice(i*this._maxPointCloud, cloudPoints.length), cloudDimensions, !this._controls.UpdatePosition);
-        
+    public UpdateCloud(cloudPoints: Array<CloudPoint>, cloudDimensions: CloudDimensions): Promise<void> {
+        return new Promise((resolve) => {
+            const sceneCount = Math.ceil(cloudPoints.length/this._maxPointCloud);
             
-        }
+            const cloudSections = Array<Array<CloudPoint>>();
+
+            for (let i=0; i<sceneCount; i++) {
+                if ((i*this._maxPointCloud) < cloudPoints.length) cloudSections.push(cloudPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud));
+                else cloudSections.push(cloudPoints.slice(i*this._maxPointCloud, cloudPoints.length));
+            }
+            
+            this._scene.UpdateCloud(cloudSections, cloudDimensions);
+
+            resolve();
+        });
     }
 }
 

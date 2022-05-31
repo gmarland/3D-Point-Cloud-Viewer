@@ -17,6 +17,8 @@ class PointRenderer {
     private _width: number;
     private _height: number;
 
+    private _sceneDirty: boolean;
+
     constructor(camera: PointCamera, controls: FirstPersonControls, width: number, height: number) {
         this._camera = camera;
 
@@ -35,6 +37,10 @@ class PointRenderer {
         return this._renderer.domElement;
     }
 
+    public SetSceneDirty() {
+        this._sceneDirty = true;
+    }
+
     public SetSize(width: number, height: number): void {
         this._width = width;
         this._height = height;
@@ -42,13 +48,13 @@ class PointRenderer {
         this._renderer.setSize( this._width, this._height );
     }
 
-    public StartRendering(scenes: Array<PointScene>) {
+    public StartRendering(scene: PointScene) {
         this._keepRendering = true;
 
         if (!this._rendering) {
             this._rendering = true;
             
-            this.Render(scenes);
+            this.Render(scene);
         }
     }
 
@@ -56,51 +62,33 @@ class PointRenderer {
         this._keepRendering = true;
     }
 
-    private Render(scenes: Array<PointScene>): void {
+    private Render(scene: PointScene): void {
         Logging.Log("Starting render: " + new Date());
 
         let render = false;
 
         if ((this._controls) && (this._controls.UpdatePosition)) {
             this._controls.Update();
-            
+
             render = true;
         }
         
-        if (scenes.length > 0) {
-            this._renderer.autoClear = true;
-
-            this._renderer.autoClear = false;
-
-            let renderPromises = [];
-
-            for (let i=0; i<scenes.length; i++) {
-                renderPromises.push(new Promise<void>((resolve) => {
-                    this.RenderScene(render, scenes[i]);
-                    
-                    resolve();
-                }));
-            }
-
-            Promise.all(renderPromises).then(() => {
-                requestAnimationFrame(() => 
-                {
-                    if (this._keepRendering) this.Render(scenes);
-                });
-            });
-        }
-        else {
+        new Promise<void>((resolve) => {
+            this.RenderScene(render, scene);
+            
+            resolve();
+        }).then(() => {
             requestAnimationFrame(() => 
             {
-                if (this._keepRendering) this.Render(scenes);
+                if (this._keepRendering) this.Render(scene);
             });
-        }
+        });
     }
 
     private RenderScene(render: boolean, scene: PointScene): void {
         let renderScene = render;
 
-        if (scene.IsDirty) renderScene = true;
+        if (this._sceneDirty) renderScene = true;
 
         if (renderScene) {
             let startTime = Date.now();
@@ -109,9 +97,7 @@ class PointRenderer {
 
             Logging.Log("Time to render: " + (Date.now() - startTime));
 
-            this._renderer.autoClear = false;
-
-            scene.IsDirty = false;
+            this._sceneDirty = false;
         }
     }
 }

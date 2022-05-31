@@ -2,7 +2,7 @@ import { Component, Host, h, Method, Prop } from '@stencil/core';
 import { CloudViewer } from '../../modules/CloudViewer';
 import { CloudDimensions } from '../../modules/Models/CloudDimensions';
 import CloudPoint from '../../modules/Models/CloudPoint';
-import { GetCloudDimensions } from '../../utils/pointCloudUtils';
+import { GetCloudDimensions } from '../../workers/pointCloudUtils.worker';
 
 @Component({
   tag: 'cloud-scene',
@@ -44,16 +44,18 @@ export class CloudScene {
           resolve(mapped);
         }).then((mappedPoints: Array<CloudPoint>) => {
           if (this.sceneSize !== null) {
+            console.log("sending for processing " + Date.now());
             GetCloudDimensions(this.sceneSize, mappedPoints).then((cloudDimensions: CloudDimensions) => {
-              this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions);
-            
-              this._processing = false;
+              console.log("continuing " + Date.now());
+              this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions).then(() => {
+                this._processing = false;
+              });
             });
           }
           else {
-            this._cloudViewer.UpdateCloud(mappedPoints, null);
-          
-            this._processing = false;
+            this._cloudViewer.UpdateCloud(mappedPoints, null).then(() => {
+              this._processing = false;
+            });
           }
         });
       }
