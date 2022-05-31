@@ -2,7 +2,8 @@ import { Component, Host, h, Method, Prop } from '@stencil/core';
 import { CloudViewer } from '../../modules/CloudViewer';
 import { CloudDimensions } from '../../modules/Models/CloudDimensions';
 import CloudPoint from '../../modules/Models/CloudPoint';
-import { GetCloudDimensions } from '../../workers/pointCloudUtils.worker';
+import { PointRange } from '../../modules/Models/PointRange';
+import { workerPath } from '../../workers/pointProcessing.worker.ts?worker';
 
 @Component({
   tag: 'cloud-scene',
@@ -14,6 +15,7 @@ export class CloudScene {
   _cloudViewer: CloudViewer;
   
   _processing: boolean = false;
+  private _maxPointCloud: number = 10000;
 
   @Prop() sceneSize?: number = null;
 
@@ -44,13 +46,55 @@ export class CloudScene {
           resolve(mapped);
         }).then((mappedPoints: Array<CloudPoint>) => {
           if (this.sceneSize !== null) {
+            const sceneCount = Math.ceil(mappedPoints.length/this._maxPointCloud);
+            const PointRanges = Array<PointRange>();
+            
             console.log("sending for processing " + Date.now());
+            const processingWork = new Worker(workerPath);
+
+            for (let i=0; i<sceneCount; i++) {
+              if ((i*this._maxPointCloud) < cloudPoints.length) {
+                processingWork.postMessage({
+                  action: "processPoints",
+                  cloudPoints: mappedPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud)
+                });
+              }
+              else {
+                processingWork.postMessage({
+                  action: "processPoints",
+                  cloudPoints: mappedPoints.slice(i*this._maxPointCloud, mappedPoints.length)
+                });
+              }
+            }
+
+            processingWork.onmessage = (cloudDimensions) => {
+              if (cloudDimensions.data.action == "processPoints") {
+                PointRanges.push(cloudDimensions.data.ranges as PointRange);
+
+                if (PointRanges.length === sceneCount) {
+                  console.log(PointRanges);
+                }
+              }
+            };
+
+            const cloudSections = Array<Promise<CloudDimensions>>();
+
+            /*for (let i=0; i<sceneCount; i++) {
+                if ((i*this._maxPointCloud) < cloudPoints.length) cloudSections.push(GetCloudDimensions(this.sceneSize, mappedPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud)));
+                else cloudSections.push(GetCloudDimensions(this.sceneSize, mappedPoints.slice(i*this._maxPointCloud, mappedPoints.length)));
+            }
+            
+            Promise.all(cloudSections).then((dimensions) => {
+              console.log(dimensions);
+            });
+
             GetCloudDimensions(this.sceneSize, mappedPoints).then((cloudDimensions: CloudDimensions) => {
               console.log("continuing " + Date.now());
               this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions).then(() => {
+                console.log("cloud updated " + Date.now());
                 this._processing = false;
               });
-            });
+            });*/
           }
           else {
             this._cloudViewer.UpdateCloud(mappedPoints, null).then(() => {
