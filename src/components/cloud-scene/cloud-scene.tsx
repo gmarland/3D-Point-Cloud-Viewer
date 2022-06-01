@@ -25,7 +25,9 @@ export class CloudScene {
   private _currentRangeWorker: number = 0;
   private _dimensionsWorker: Worker;
 
-  
+  @Prop() cameraLookAt: string = "0,0,0";
+  @Prop() cameraPosition: string = "6,6,6";
+
   @Prop() concurrentWorkers: number = 10;
   @Prop() sceneSize?: number = null;
 
@@ -126,7 +128,7 @@ export class CloudScene {
   }
 
   componentDidLoad() {
-    this._cloudViewer = new CloudViewer(this._canvas, this.pointColor, this.pointSize, this.concurrentWorkers);
+    this._cloudViewer = new CloudViewer(this._canvas, this.cameraPosition, this.cameraLookAt, this.pointColor, this.pointSize, this.concurrentWorkers);
   }
 
   render() {

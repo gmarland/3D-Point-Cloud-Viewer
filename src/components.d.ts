@@ -8,6 +8,8 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { PointRange } from "./modules/Models/PointRange";
 export namespace Components {
     interface CloudScene {
+        "cameraLookAt": string;
+        "cameraPosition": string;
         "concurrentWorkers": number;
         "pointColor": string;
         "pointSize": number;
@@ -29,6 +31,8 @@ declare global {
 }
 declare namespace LocalJSX {
     interface CloudScene {
+        "cameraLookAt"?: string;
+        "cameraPosition"?: string;
         "concurrentWorkers"?: number;
         "pointColor"?: string;
         "pointSize"?: number;

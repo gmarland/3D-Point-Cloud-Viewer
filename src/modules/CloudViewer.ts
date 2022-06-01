@@ -20,7 +20,7 @@ class CloudViewer {
 
     private _renderer: PointRenderer;
 
-    constructor(container: HTMLDivElement, pointColor: string, pointSize: number, concurrentWorkers: number) {
+    constructor(container: HTMLDivElement, cameraPosition: string, cameraLookAt: string, pointColor: string, pointSize: number, concurrentWorkers: number) {
         this._container = container;
 
         this._pointColor = pointColor;
@@ -29,6 +29,23 @@ class CloudViewer {
         this._camera = new PointCamera(this._container.clientWidth, this._container.clientHeight);
 
         this._controls = new FirstPersonControls(this._camera);
+
+        if (cameraPosition && (cameraPosition.length > 0)) {
+            const defaultCameraPosition = cameraPosition.split(',').map(str => {
+                return Number(str);
+            });
+
+            if (defaultCameraPosition.length == 3) this._controls.SetCameraPosition(defaultCameraPosition[0], defaultCameraPosition[1], defaultCameraPosition[2])
+        }
+
+        if (cameraLookAt && (cameraLookAt.length > 0)) {
+            const defaultCameraLookAt = cameraLookAt.split(',').map(str => {
+                return Number(str);
+            });
+
+            if (defaultCameraLookAt.length == 3) this._controls.SetCameraLookAt(defaultCameraLookAt[0], defaultCameraLookAt[1], defaultCameraLookAt[2])
+        }
+        
         this._controls.BindEvents(container);
 
         this._scene = new PointScene(this._pointColor, this._pointSize, concurrentWorkers);
