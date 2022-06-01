@@ -15,12 +15,18 @@ export class CloudScene {
   _canvas: HTMLDivElement;
   _cloudViewer: CloudViewer;
   
-  _processing: boolean = false;
   private _maxPointCloud: number = 10000;
 
-  private _rangesWorker: Worker;
+  private _processingCloudPoints: CloudPoint[] = null;
+  private _processingBatches: number = 1;
+  private _processingPointRanges: Array<PointRange> = new Array<PointRange>();
+
+  private _rangesWorkers: Array<Worker> = new Array<Worker>();
+  private _currentRangeWorker: number = 0;
   private _dimensionsWorker: Worker;
 
+  
+  @Prop() concurrentWorkers: number = 10;
   @Prop() sceneSize?: number = null;
 
   @Prop() pointColor: string = "#ffffff";
@@ -41,41 +47,39 @@ export class CloudScene {
   @Method()
   public async updateCloud(cloudPoints: Array<any>): Promise<boolean> {
     if (this._cloudViewer) {
-      if (!this._processing) {
-        this._processing = true;
+      if (this._processingCloudPoints === null) {
+        this._processingCloudPoints = cloudPoints;
 
-        new Promise<Array<CloudPoint>>((resolve) => {
-          let mapped: CloudPoint[] = cloudPoints;
-
-          resolve(mapped);
-        }).then((mappedPoints: Array<CloudPoint>) => {
           if (this.sceneSize !== null) {
-            const sceneCount = Math.ceil(mappedPoints.length/this._maxPointCloud);
-            const pointRanges = Array<PointRange>();
-            
-            Logging.Log("sending for processing " + Date.now());
+            this._processingBatches = Math.ceil(this._processingCloudPoints.length/this._maxPointCloud);
 
-            for (let i=0; i<sceneCount; i++) {
+            Logging.log("sending for processing " + Date.now());
+
+            for (let i=0; i<this._processingBatches; i++) {
               if ((i*this._maxPointCloud) < cloudPoints.length) {
-                this._rangesWorker.postMessage({
+                this._rangesWorkers[this._currentRangeWorker].postMessage({
                   action: "processPoints",
-                  cloudPoints: mappedPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud)
+                  cloudPoints: this._processingCloudPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud)
                 });
               }
               else {
-                this._rangesWorker.postMessage({
+                this._rangesWorkers[this._currentRangeWorker].postMessage({
                   action: "processPoints",
-                  cloudPoints: mappedPoints.slice(i*this._maxPointCloud, mappedPoints.length)
+                  cloudPoints: this._processingCloudPoints.slice(i*this._maxPointCloud, this._processingCloudPoints.length)
                 });
               }
+
+              if (this._currentRangeWorker < (this._rangesWorkers.length-1)) this._currentRangeWorker++;
+              else this._currentRangeWorker = 0;
             }
           }
           else {
-            this._cloudViewer.UpdateCloud(mappedPoints, null).then(() => {
-              this._processing = false;
+            this._cloudViewer.UpdateCloud(this._processingCloudPoints, null).then(() => {
+              this._processingCloudPoints = null;
+              this._processingBatches = 1;
+              this._processingPointRanges = new Array<PointRange>();
             });
           }
-        });
       }
 
       return true;
@@ -86,40 +90,43 @@ export class CloudScene {
   }
 
   connectedCallback() {
-    this._rangesWorker = new Worker(workerPath);
-    this._dimensionsWorker = new Worker(workerPath);
+    for (let i=0; i<this.concurrentWorkers; i++) {
+      this._rangesWorkers[i] = new Worker(workerPath);
+      this._rangesWorkers[i].onmessage = (work) => {
+        if (work.data.action == "processPoints") {
+          this._processingPointRanges.push(work.data.ranges as PointRange);
     
-    this._rangesWorker.onmessage = (work) => {
-      if (work.data.action == "processPoints") {
-        pointRanges.push(work.data.ranges as PointRange);
-
-        if (pointRanges.length === sceneCount) {
-          this._dimensionsWorker.postMessage({
-            action: "cloudDimensions",
-            sceneSize: this.sceneSize,
-            pointRanges: pointRanges
-          });
+          if (this._processingPointRanges.length === this._processingBatches) {
+            this._dimensionsWorker.postMessage({
+              action: "cloudDimensions",
+              sceneSize: this.sceneSize,
+              pointRanges: this._processingPointRanges
+            });
+          }
         }
-      }
-    };
+      };  
+    }
 
+    this._dimensionsWorker = new Worker(workerPath);
     this._dimensionsWorker.onmessage = (work) => {
       if (work.data.action == "cloudDimensions") {
         const cloudDimensions = work.data.cloudDimensions as CloudDimensions;
-
-        Logging.Log("continuing " + Date.now());
-
-        this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions).then(() => {
-          Logging.Log("cloud updated " + Date.now());
-
-          this._processing = false;
+  
+        Logging.log("continuing " + Date.now());
+  
+        this._cloudViewer.UpdateCloud(this._processingCloudPoints, cloudDimensions).then(() => {
+          Logging.log("cloud updated " + Date.now());
+  
+          this._processingCloudPoints = null;
+          this._processingBatches = 1;
+          this._processingPointRanges = new Array<PointRange>();
         });
       }
     };
   }
 
   componentDidLoad() {
-    this._cloudViewer = new CloudViewer(this._canvas, this.pointColor, this.pointSize);
+    this._cloudViewer = new CloudViewer(this._canvas, this.pointColor, this.pointSize, this.concurrentWorkers);
   }
 
   render() {

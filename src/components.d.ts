@@ -8,6 +8,7 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { PointRange } from "./modules/Models/PointRange";
 export namespace Components {
     interface CloudScene {
+        "concurrentWorkers": number;
         "pointColor": string;
         "pointSize": number;
         "resize": () => Promise<boolean>;
@@ -28,6 +29,7 @@ declare global {
 }
 declare namespace LocalJSX {
     interface CloudScene {
+        "concurrentWorkers"?: number;
         "pointColor"?: string;
         "pointSize"?: number;
         "sceneSize"?: number;

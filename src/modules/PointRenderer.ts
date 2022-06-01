@@ -17,8 +17,6 @@ class PointRenderer {
     private _width: number;
     private _height: number;
 
-    private _sceneDirty: boolean;
-
     constructor(camera: PointCamera, controls: FirstPersonControls, width: number, height: number) {
         this._camera = camera;
 
@@ -35,10 +33,6 @@ class PointRenderer {
 
     public GetDOMElement(): HTMLCanvasElement {
         return this._renderer.domElement;
-    }
-
-    public SetSceneDirty() {
-        this._sceneDirty = true;
     }
 
     public SetSize(width: number, height: number): void {
@@ -59,23 +53,38 @@ class PointRenderer {
     }
 
     public StopRendering() {
-        this._keepRendering = true;
+        this._keepRendering = false;
+        this._rendering = false;
     }
 
     private Render(scene: PointScene): void {
-        Logging.Log("Starting render: " + new Date());
-
         let render = false;
 
         if ((this._controls) && (this._controls.UpdatePosition)) {
+            let controlsTime = Date.now();
+
             this._controls.Update();
+
+            Logging.log("Time to move: " + (Date.now() - controlsTime));
 
             render = true;
         }
         
         new Promise<void>((resolve) => {
-            this.RenderScene(render, scene);
-            
+            let renderScene = render;
+    
+            if (scene.IsDirty) renderScene = true;
+    
+            if (renderScene) {
+                let startTime = Date.now();
+    
+                this._renderer.render(scene.GetScene(), this._camera.GetCamera());
+    
+                Logging.log("Time to render: " + (Date.now() - startTime));
+    
+                scene.IsDirty = false;
+            }
+
             resolve();
         }).then(() => {
             requestAnimationFrame(() => 
@@ -83,22 +92,6 @@ class PointRenderer {
                 if (this._keepRendering) this.Render(scene);
             });
         });
-    }
-
-    private RenderScene(render: boolean, scene: PointScene): void {
-        let renderScene = render;
-
-        if (this._sceneDirty) renderScene = true;
-
-        if (renderScene) {
-            let startTime = Date.now();
-
-            this._renderer.render(scene.GetScene(), this._camera.GetCamera());
-
-            Logging.Log("Time to render: " + (Date.now() - startTime));
-
-            this._sceneDirty = false;
-        }
     }
 }
 

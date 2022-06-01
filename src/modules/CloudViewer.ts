@@ -20,9 +20,7 @@ class CloudViewer {
 
     private _renderer: PointRenderer;
 
-    private _maxPointCloud: number = 200000;
-
-    constructor(container: HTMLDivElement, pointColor: string, pointSize: number) {
+    constructor(container: HTMLDivElement, pointColor: string, pointSize: number, concurrentWorkers: number) {
         this._container = container;
 
         this._pointColor = pointColor;
@@ -33,7 +31,7 @@ class CloudViewer {
         this._controls = new FirstPersonControls(this._camera);
         this._controls.BindEvents(container);
 
-        this._scene = new PointScene(this._pointColor, this._pointSize);
+        this._scene = new PointScene(this._pointColor, this._pointSize, concurrentWorkers);
         this._controls.AddToScene(this._scene);
 
         this._renderer = new PointRenderer(this._camera, this._controls, this._container.clientWidth, this._container.clientHeight);
@@ -66,16 +64,7 @@ class CloudViewer {
 
     public UpdateCloud(cloudPoints: Array<CloudPoint>, cloudDimensions: CloudDimensions): Promise<void> {
         return new Promise((resolve) => {
-            const sceneCount = Math.ceil(cloudPoints.length/this._maxPointCloud);
-            
-            const cloudSections = Array<Array<CloudPoint>>();
-
-            for (let i=0; i<sceneCount; i++) {
-                if ((i*this._maxPointCloud) < cloudPoints.length) cloudSections.push(cloudPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud));
-                else cloudSections.push(cloudPoints.slice(i*this._maxPointCloud, cloudPoints.length));
-            }
-            
-            this._scene.UpdateCloud(cloudSections, cloudDimensions);
+            this._scene.UpdateCloud(cloudPoints, cloudDimensions);
 
             resolve();
         });
