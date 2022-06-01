@@ -28,7 +28,7 @@ export class CloudScene {
   @Prop() cameraLookAt: string = "0,0,0";
   @Prop() cameraPosition: string = "6,6,6";
 
-  @Prop() concurrentWorkers: number = 10;
+  @Prop() concurrentWorkers: number = 20;
   @Prop() sceneSize?: number = null;
 
   @Prop() pointColor: string = "#000000";
