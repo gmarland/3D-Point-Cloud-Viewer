@@ -29,7 +29,7 @@ export class CloudScene {
   @Prop() concurrentWorkers: number = 10;
   @Prop() sceneSize?: number = null;
 
-  @Prop() pointColor: string = "#ffffff";
+  @Prop() pointColor: string = "#000000";
   @Prop() pointSize: number = 0.01;
 
   @Method()
