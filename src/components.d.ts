@@ -6,7 +6,6 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { PointRange } from "./modules/Models/PointRange";
-import { CloudDimensions } from "./modules/Models/CloudDimensions";
 export namespace Components {
     interface CloudScene {
         "pointColor": string;

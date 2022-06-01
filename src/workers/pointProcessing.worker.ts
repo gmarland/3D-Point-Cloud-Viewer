@@ -1,3 +1,4 @@
+import { Logging } from "../modules/Logging";
 import { CloudDimensions } from "../modules/Models/CloudDimensions";
 import CloudPoint from "../modules/Models/CloudPoint";
 import { PointRange } from "../modules/Models/PointRange";
@@ -20,18 +21,30 @@ function processCloudDimensions(sceneSize: number, pointRanges: Array<PointRange
     });
 
     const cloudDimensions = new CloudDimensions();
+    
+    const xSize = (maxX-minX);
+    const ySize = (maxY-minY);
+    const zSize = (maxZ-minZ);
 
-    cloudDimensions.xRatio = sceneSize/(maxX-minX);
-    cloudDimensions.yRatio = sceneSize/(maxY-minY);
-    cloudDimensions.zRatio = sceneSize/(maxZ-minZ);
+    if (xSize !== 0) cloudDimensions.xRatio = sceneSize/xSize;
+    else cloudDimensions.xRatio = 1;
+
+    if (ySize !== 0) cloudDimensions.yRatio = sceneSize/ySize;
+    else cloudDimensions.yRatio = 1;
+   
+    if (zSize !== 0) cloudDimensions.zRatio = sceneSize/zSize;
+    else cloudDimensions.zRatio = 1;
 
     cloudDimensions.xOffset = (maxX+minX)/2;
     cloudDimensions.yOffset = (maxY+minY)/2;
     cloudDimensions.zOffset = (maxZ+minZ)/2;
 
-    console.log("completed processing " + Date.now());
+    Logging.Log("completed processing " + Date.now());
 
-    postMessage(cloudDimensions);
+    postMessage({
+        action: "cloudDimensions",
+        cloudDimensions: cloudDimensions
+    });
 }
 
 function processPointRange(cloudPoints: Array<CloudPoint>) {
@@ -45,9 +58,9 @@ function processPointRange(cloudPoints: Array<CloudPoint>) {
     cloudPoints.forEach((cloudPoint: CloudPoint) => {
         if ((minX === null) || (cloudPoint.x < minX)) minX = cloudPoint.x;
         if ((maxX === null) || (cloudPoint.x > maxX)) maxX = cloudPoint.x;
-        if ((minX === null) || (cloudPoint.y < minY)) minY = cloudPoint.y;
+        if ((minY === null) || (cloudPoint.y < minY)) minY = cloudPoint.y;
         if ((maxY === null) || (cloudPoint.y > maxY)) maxY = cloudPoint.y;
-        if ((minX === null) || (cloudPoint.z < minZ)) minZ = cloudPoint.z;
+        if ((minZ === null) || (cloudPoint.z < minZ)) minZ = cloudPoint.z;
         if ((maxZ === null) || (cloudPoint.z > maxZ)) maxZ = cloudPoint.z;
     });
 
@@ -59,7 +72,7 @@ function processPointRange(cloudPoints: Array<CloudPoint>) {
     pointRange.minZ = minZ;
     pointRange.maxZ = maxZ;
 
-    console.log("completed processing " + Date.now());
+    Logging.Log("completed processing " + Date.now());
 
     postMessage({
         action: "processPoints",

@@ -1,5 +1,6 @@
 import { Component, Host, h, Method, Prop } from '@stencil/core';
 import { CloudViewer } from '../../modules/CloudViewer';
+import { Logging } from '../../modules/Logging';
 import { CloudDimensions } from '../../modules/Models/CloudDimensions';
 import CloudPoint from '../../modules/Models/CloudPoint';
 import { PointRange } from '../../modules/Models/PointRange';
@@ -16,6 +17,9 @@ export class CloudScene {
   
   _processing: boolean = false;
   private _maxPointCloud: number = 10000;
+
+  private _rangesWorker: Worker;
+  private _dimensionsWorker: Worker;
 
   @Prop() sceneSize?: number = null;
 
@@ -47,54 +51,24 @@ export class CloudScene {
         }).then((mappedPoints: Array<CloudPoint>) => {
           if (this.sceneSize !== null) {
             const sceneCount = Math.ceil(mappedPoints.length/this._maxPointCloud);
-            const PointRanges = Array<PointRange>();
+            const pointRanges = Array<PointRange>();
             
-            console.log("sending for processing " + Date.now());
-            const processingWork = new Worker(workerPath);
+            Logging.Log("sending for processing " + Date.now());
 
             for (let i=0; i<sceneCount; i++) {
               if ((i*this._maxPointCloud) < cloudPoints.length) {
-                processingWork.postMessage({
+                this._rangesWorker.postMessage({
                   action: "processPoints",
                   cloudPoints: mappedPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud)
                 });
               }
               else {
-                processingWork.postMessage({
+                this._rangesWorker.postMessage({
                   action: "processPoints",
                   cloudPoints: mappedPoints.slice(i*this._maxPointCloud, mappedPoints.length)
                 });
               }
             }
-
-            processingWork.onmessage = (cloudDimensions) => {
-              if (cloudDimensions.data.action == "processPoints") {
-                PointRanges.push(cloudDimensions.data.ranges as PointRange);
-
-                if (PointRanges.length === sceneCount) {
-                  console.log(PointRanges);
-                }
-              }
-            };
-
-            const cloudSections = Array<Promise<CloudDimensions>>();
-
-            /*for (let i=0; i<sceneCount; i++) {
-                if ((i*this._maxPointCloud) < cloudPoints.length) cloudSections.push(GetCloudDimensions(this.sceneSize, mappedPoints.slice(i*this._maxPointCloud, (i+1)*this._maxPointCloud)));
-                else cloudSections.push(GetCloudDimensions(this.sceneSize, mappedPoints.slice(i*this._maxPointCloud, mappedPoints.length)));
-            }
-            
-            Promise.all(cloudSections).then((dimensions) => {
-              console.log(dimensions);
-            });
-
-            GetCloudDimensions(this.sceneSize, mappedPoints).then((cloudDimensions: CloudDimensions) => {
-              console.log("continuing " + Date.now());
-              this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions).then(() => {
-                console.log("cloud updated " + Date.now());
-                this._processing = false;
-              });
-            });*/
           }
           else {
             this._cloudViewer.UpdateCloud(mappedPoints, null).then(() => {
@@ -109,6 +83,39 @@ export class CloudScene {
     else {
       return false;
     }
+  }
+
+  connectedCallback() {
+    this._rangesWorker = new Worker(workerPath);
+    this._dimensionsWorker = new Worker(workerPath);
+    
+    this._rangesWorker.onmessage = (work) => {
+      if (work.data.action == "processPoints") {
+        pointRanges.push(work.data.ranges as PointRange);
+
+        if (pointRanges.length === sceneCount) {
+          this._dimensionsWorker.postMessage({
+            action: "cloudDimensions",
+            sceneSize: this.sceneSize,
+            pointRanges: pointRanges
+          });
+        }
+      }
+    };
+
+    this._dimensionsWorker.onmessage = (work) => {
+      if (work.data.action == "cloudDimensions") {
+        const cloudDimensions = work.data.cloudDimensions as CloudDimensions;
+
+        Logging.Log("continuing " + Date.now());
+
+        this._cloudViewer.UpdateCloud(mappedPoints, cloudDimensions).then(() => {
+          Logging.Log("cloud updated " + Date.now());
+
+          this._processing = false;
+        });
+      }
+    };
   }
 
   componentDidLoad() {
